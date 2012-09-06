@@ -63,7 +63,8 @@ var walk = function(dir, done, exclude, basePath) {
       file = dir + '/' + file;
 	  	  fs.stat(file, function(err, stat) {
 			if (exclude[file.substring(basePath)]) {
-				process.stdout.write("excluding:"+file.substring(basePath));
+				process.stdout.write("excluding:"+file.substring(basePath)+'\n');
+				if (!--pending) done(null, results);
 			} else {
 		  
 				if (stat && stat.isDirectory()) {
