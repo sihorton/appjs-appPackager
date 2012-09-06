@@ -6,7 +6,7 @@ Router for AppJS that can serve your content files from a package.
 Quick Start
 ===========
 Download a pre-built AppJS package from [here](http://dists.appjs.org/) and extract somewhere. 
-Then download a [zip of this repository](https://github.com/sihorton/appPackage/zipball/master) and extract the files
+Then download a [zip of this repository](https://github.com/sihorton/appjs-appPackage/zipball/master) and extract the files
 into the "data" folder from the AppJS package, replacing the app.js with the one from this repository.
 When you then run the demo it will serve the app from the supplied "example.appjs" package.
 
