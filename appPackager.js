@@ -17,7 +17,11 @@ fs.stat(process.argv[2], function(err, stats) {
 		var appFolder = process.argv[2];
 		var appPackage = appFolder + config.packageExt;
 		process.stdout.write('scanning folder: '+appFolder+'\n');
-		walk(appFolder, function(err,files) {
+		var exclude= {
+			'bin':'bin'
+			,'node_modules':'node_modules'
+		}
+		walk(appFolder,function(err,files) {
 			if (err) {
 				process.stdout.write('Error:' + err);
 			} else {
@@ -35,7 +39,7 @@ fs.stat(process.argv[2], function(err, stats) {
 					}
 				});
 			}
-		})
+		},exclude);
 	}
 	if (stats.isFile()) {
 		var apack = require('./adm-zip');
@@ -48,7 +52,7 @@ fs.stat(process.argv[2], function(err, stats) {
 	}
 });
 //Support file to scan dir recursively
-var walk = function(dir, done, basePath) {
+var walk = function(dir, done, exclude, basePath) {
   var results = [];
   if (!basePath) basePath = dir.length+1;
   fs.readdir(dir, function(err, list) {
@@ -57,18 +61,24 @@ var walk = function(dir, done, basePath) {
     if (!pending) return done(null, results);
     list.forEach(function(file) {
       file = dir + '/' + file;
-      fs.stat(file, function(err, stat) {
-        if (stat && stat.isDirectory()) {
-          walk(file, function(err, res) {
-            results = results.concat(res);
-            if (!--pending) done(null, results);
-          },basePath);
-        } else {
-          	process.stdout.write(file.substring(basePath)+'\n');
-			results.push({name:file.substring(basePath),path:file});
-          if (!--pending) done(null, results);
-        }
-      });
+	  	  fs.stat(file, function(err, stat) {
+			if (exclude[file.substring(basePath)]) {
+				process.stdout.write("excluding:"+file.substring(basePath));
+			} else {
+		  
+				if (stat && stat.isDirectory()) {
+				  walk(file, function(err, res) {
+					results = results.concat(res);
+					if (!--pending) done(null, results);
+				  },exclude, basePath);
+				} else {
+					process.stdout.write(file.substring(basePath)+'\n');
+					results.push({name:file.substring(basePath),path:file});
+				  if (!--pending) done(null, results);
+				}
+			}
+		  });
+		 
     });
   });
 };
