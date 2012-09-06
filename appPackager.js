@@ -1,5 +1,5 @@
-var config {
-	packageExt:'appjs'
+var config = {
+	packageExt:'.appjs'
 }
 
 if (process.argv.length < 3) {
