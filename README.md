@@ -17,7 +17,10 @@ appPackager will unpack all of the files in the data/content.appjs package into 
 
 Use with AppJS
 ==============
-To use with AppJS save [packagedApp.js](https://raw.github.com/sihorton/appjs-appPackager/master/packagedApp.js) to your data directory and then replace the following line in app.js:
+
+To see an example of how to use the application packages see this related project: https://github.com/sihorton/appjs-platform/
+
+To use with vanilla AppJS save [packagedApp.js](https://raw.github.com/sihorton/appjs-appPackager/master/packagedApp.js) to your data directory and then replace the following line in app.js:
 
     app.serveFilesFrom(__dirname + '/content');
     
