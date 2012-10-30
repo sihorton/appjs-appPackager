@@ -15,6 +15,43 @@ fs.stat(process.argv[2], function(err, stats) {
 	}
 	if (stats.isDirectory()) {
 		var appFolder = process.argv[2];
+		
+		//scan node modules
+		console.log("scanning node_modules");
+		var moduleDependancies = {};
+		fs.readdir("./"+appFolder+"/node_modules", function(err, list) {
+			if (err) {console.log(err);throw err;}
+			list.forEach(function(file) {
+				var module = appFolder +"/node_modules" + '/' + file;
+				fs.stat(module, function(err, stat) {
+					if (stat && stat.isDirectory()) {
+						var exclude = {};
+						//package this module.
+						fs.stat(module+"/package.json", function(err,stat) {
+							if (stat && stat.isFile()) {
+								fs.readFile(module+"/package.json", 'utf8', function (err,data) {
+								  if (err) {
+									return console.log(err);
+								  }
+								  var config = JSON.parse(data);
+								  packModule(module,config.name+"-"+config.version+"-"+process.platform,appFolder);
+								  moduleDependancies[config.name] = {
+									name:config.name
+									,version:config.version
+									,platform:process.platform
+								  }
+								});
+							} else {
+								packModule(module,file+"."+process.platform,appFolder);
+							}
+						});
+						
+					}					
+				});
+			});
+		});
+		
+		
 		var appPackage = appFolder + config.packageExt;
 		process.stdout.write('scanning folder: '+appFolder+'\n');
 		var exclude= {
@@ -51,8 +88,32 @@ fs.stat(process.argv[2], function(err, stats) {
 		process.stdout.write("unpackaged to "+appFolder+'\n');
 	}
 });
-//Support file to scan dir recursively
-var walk = function(dir, done, exclude, basePath) {
+//package module
+function packModule(module,moduleName,appFolder) {
+	var modulePack = appFolder+"/node_modules/"+moduleName+".modpack";
+	var exclude = {};
+	walk(module,function(err,files) {
+		if (err) {
+			process.stdout.write('Error:' + err);
+		} else {
+			var apack = require("./node-native-zip");			
+			var archive = new apack(modulePack);
+			archive.addFiles(files, function (err) {
+				if (err) {
+					process.stdout.write("error while adding files: "+ err);
+				} else {
+					var buff = archive.toBuffer();
+					fs.writeFile(modulePack, buff, function () {
+						process.stdout.write("wrote "+modulePack+'\n');
+					});
+				}
+			});
+		}
+	},exclude,false,true);
+}
+//Support function to scan dir recursively
+var walk = function(dir, done, exclude, basePath, silent) {
+
   var results = [];
   if (!basePath) basePath = dir.length+1;
   fs.readdir(dir, function(err, list) {
@@ -71,9 +132,12 @@ var walk = function(dir, done, exclude, basePath) {
 				  walk(file, function(err, res) {
 					results = results.concat(res);
 					if (!--pending) done(null, results);
-				  },exclude, basePath);
+				  },exclude, basePath, silent);
 				} else {
-					process.stdout.write(file.substring(basePath)+'\n');
+					if (silent) {
+					}else {
+						process.stdout.write(file.substring(basePath)+'\n');
+					}
 					results.push({name:file.substring(basePath),path:file});
 				  if (!--pending) done(null, results);
 				}
