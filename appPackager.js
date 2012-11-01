@@ -1,8 +1,20 @@
 var config = {
 	packageExt:'.appjs'
+	,modulePackageExt:'.modpack'
 	,appInfoFile:'appInfo.json'
 }
-
+var appInfo = {
+	appName:"Unnamed"
+	,appVersion:0.1
+	,packageFormat:1
+	,packageVer:0
+	,moduleUrl:'http://example.com/modulePackages/'
+	,appUpdateUrl:'http://example.com/myapp/latest.txt'
+	,silentUpdates:true
+	,deps:{
+	
+	}
+};
 if (process.argv.length < 3) {
 	console.log("node.exe appPackager <folder to pack or package to unpack>");
 	process.exit(1);
@@ -16,23 +28,15 @@ var modulesWritten = function() {
 	console.log("modules written");
 	appInfo.packageVer = appInfo.packageVer+1;
 	
-	fs.writeFile(appFolder+config.appInfoFile,JSON.stringify(appInfo, null,4),function(err) {
+	fs.writeFile(appFolder+"/"+config.appInfoFile,JSON.stringify(appInfo, null,4),function(err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("wrote "+appFolder+config.appInfoFile);
+			console.log("wrote "+appFolder+"/"+config.appInfoFile);
 		}
 		packageApp();
 	});
 }
-var appInfo = {
-	appName:"Unnamed"
-	,packageVer:0
-	,appVersion:0.1
-	,deps:{
-	
-	}
-};
 var appFolder = './';
 				
 fs.stat(process.argv[2], function(err, stats) {
@@ -43,12 +47,12 @@ fs.stat(process.argv[2], function(err, stats) {
 	if (stats.isDirectory()) {
 		appFolder = process.argv[2];
 		appPackage = appFolder + config.packageExt;
-		fs.exists(appFolder+config.appInfoFile,function(exists) {
+		fs.exists(appFolder+"/"+config.appInfoFile,function(exists) {
 			if (!exists) {
 				appInfo.appName=path.basename(appFolder);
 				scanModules();	
 			} else {
-				fs.readFile(appFolder+config.appInfoFile, 'utf8', function (err,data) {
+				fs.readFile(appFolder+"/"+config.appInfoFile, 'utf8', function (err,data) {
 				  if (err) {
 					console.log(err);
 				  } else {
@@ -140,7 +144,7 @@ function scanModules() {
 //package module
 function packModule(module,moduleName,appFolder) {
 	modulesWaiting++;
-	var modulePack = appFolder+"/node_modules/"+moduleName+".modpack";
+	var modulePack = appFolder+"/node_modules/"+moduleName+config.modulePackageExt;
 	var exclude = {};
 	walk(module,function(err,files) {
 		if (err) {
