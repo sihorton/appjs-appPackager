@@ -119,16 +119,18 @@ function scanModules() {
 							  if (err) {
 								return console.log(err);
 							  }
-							  var config = JSON.parse(data);
-							  if (!appInfo.deps[config.name]) appInfo.deps[config.name] = {};
+							  var modPackageInfo = JSON.parse(data);
+							  if (!appInfo.deps[modPackageInfo.name]) appInfo.deps[modPackageInfo.name] = {};
 							  
-							  appInfo.deps[config.name].name = config.name;
-							  appInfo.deps[config.name].version = config.version;
-							  if (!appInfo.deps[config.name]['platforms']) appInfo.deps[config.name].platforms = {};
-							  appInfo.deps[config.name].platforms[process.platform] = process.platform;
-							  
-							  
-							  packModule(module,config.name+"-"+config.version+"-"+process.platform,appFolder);
+							  appInfo.deps[modPackageInfo.name].name = modPackageInfo.name;
+							  appInfo.deps[modPackageInfo.name].version = modPackageInfo.version;
+							  if (!appInfo.deps[modPackageInfo.name]['platforms']) appInfo.deps[modPackageInfo.name].platforms = {};
+							  appInfo.deps[modPackageInfo.name].platforms[process.platform] = process.platform;
+							  if (appInfo.deps[modPackageInfo.name]['crossPlatform']) {
+								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version+"-"+process.platform,appFolder);
+							  } else {
+								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version,appFolder);
+							  }
 							  
 							});
 						} else {
