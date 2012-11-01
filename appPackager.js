@@ -10,16 +10,22 @@ var appPackage = "";
 var modulesWaiting = 0;
 var modulesWritten = function() {
 	console.log("modules written");
-	fs.writeFile(appFolder+"/node_modules/dependancies.json",JSON.stringify(moduleDependancies, null,4),function(err) {
+	fs.writeFile(appFolder+"/appjs.json",JSON.stringify(appInfo, null,4),function(err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("node_modules/dependancies.json written");
+			console.log("appjs.json written");
 		}
 		packageApp();
 	});
 }
-var moduleDependancies = {};
+var appInfo = {
+	appName:"Unnamed"
+	,appVersion:0.1
+	,deps:{
+	
+	}
+};
 var appFolder = './';
 				
 var fs = require("fs");
@@ -31,9 +37,9 @@ fs.stat(process.argv[2], function(err, stats) {
 	if (stats.isDirectory()) {
 		appFolder = process.argv[2];
 		appPackage = appFolder + config.packageExt;
-		fs.exists(appFolder+"/node_modules/dependancies.json",function(exists) {
+		fs.exists(appFolder+"/appinfo.json",function(exists) {
 			if (!exists) {
-				moduleDependancies = {};
+				appInfo.appName=appFolder;//todo clean up this name if it is a path
 				scanModules();
 				
 			} else {
@@ -41,7 +47,7 @@ fs.stat(process.argv[2], function(err, stats) {
 				  if (err) {
 					console.log(err);
 				  } else {
-					moduleDependancies = JSON.parse(data);
+					appInfo = JSON.parse(data);
 				  }
 					scanModules();
 				});
@@ -72,10 +78,11 @@ function packageApp() {
 			var apack = require("./node-native-zip");
 			
 			var archive = new apack(appPackage);
-			archive.addFiles([ 
+			/*archive.addFiles([ 
 				{ name: "dependancies.json", path: appFolder+"/node_modules/dependancies.json" }
 			], function (err) {
 				if (err) console.log("error while adding files: " + err);
+				*/
 				archive.addFiles(files, function (err) {
 					if (err) {
 						process.stdout.write("error while adding files: "+ err);
@@ -86,7 +93,7 @@ function packageApp() {
 						});
 					}
 				});
-			});
+			/*});*/
 		}
 	},exclude);
 }
@@ -110,12 +117,12 @@ function scanModules() {
 								return console.log(err);
 							  }
 							  var config = JSON.parse(data);
-							  if (!moduleDependancies[config.name]) moduleDependancies[config.name] = {};
+							  if (!appInfo.deps[config.name]) appInfo.deps[config.name] = {};
 							  
-							  moduleDependancies[config.name].name = config.name;
-							  moduleDependancies[config.name].version = config.version;
-							  if (!moduleDependancies[config.name]['platforms']) moduleDependancies[config.name].platforms = {};
-							  moduleDependancies[config.name].platforms[process.platform] = process.platform;
+							  appInfo.deps[config.name].name = config.name;
+							  appInfo.deps[config.name].version = config.version;
+							  if (!appInfo.deps[config.name]['platforms']) appInfo.deps[config.name].platforms = {};
+							  appInfo.deps[config.name].platforms[process.platform] = process.platform;
 							  
 							  
 							  packModule(module,config.name+"-"+config.version+"-"+process.platform,appFolder);
