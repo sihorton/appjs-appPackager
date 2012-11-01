@@ -1,5 +1,6 @@
 var config = {
 	packageExt:'.appjs'
+	,appInfoFile:'appInfo.json'
 }
 
 if (process.argv.length < 3) {
@@ -15,11 +16,11 @@ var modulesWritten = function() {
 	console.log("modules written");
 	appInfo.packageVer = appInfo.packageVer+1;
 	
-	fs.writeFile(appFolder+"/appInfo.json",JSON.stringify(appInfo, null,4),function(err) {
+	fs.writeFile(appFolder+config.appInfoFile,JSON.stringify(appInfo, null,4),function(err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("wrote "+appFolder+"/appInfo.json");
+			console.log("wrote "+appFolder+config.appInfoFile);
 		}
 		packageApp();
 	});
@@ -42,15 +43,12 @@ fs.stat(process.argv[2], function(err, stats) {
 	if (stats.isDirectory()) {
 		appFolder = process.argv[2];
 		appPackage = appFolder + config.packageExt;
-		fs.exists(appFolder+"/appinfo.json",function(exists) {
+		fs.exists(appFolder+config.appInfoFile,function(exists) {
 			if (!exists) {
-			console.log("no appinfo.json found");
-			console.log(appFolder+"/appinfo.json");
 				appInfo.appName=path.basename(appFolder);
-				scanModules();
-				
+				scanModules();	
 			} else {
-				fs.readFile(appFolder+"/appinfo.json", 'utf8', function (err,data) {
+				fs.readFile(appFolder+config.appInfoFile, 'utf8', function (err,data) {
 				  if (err) {
 					console.log(err);
 				  } else {
