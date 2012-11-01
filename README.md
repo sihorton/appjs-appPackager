@@ -51,13 +51,13 @@ file that you can edit and add any additional properties you like.
 
 An example of the file is given below:
 
-    {
+	{
 		"appName": "new-example",
 		"appVersion": 0.1,
 		"packageFormat": 1,
-		"packageVer": 1,
+		"packageVer": 2,
 		"moduleUrl": "http://example.com/modulePackages/",
-		"appUpdateUrl": "http://example.com/myapp/latest.txt",
+		"appUpdateUrl": "http://example.com/new-example/latest.txt",
 		"silentUpdates": true,
 		"deps": {
 			"adm-zip": {
@@ -97,6 +97,7 @@ An example of the file is given below:
 			}
 		}
 	}
+
 Routers
 ======
 packagedApp.js contains a new router that can be used to serve files from a package instead of a directory. 
