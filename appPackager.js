@@ -6,21 +6,27 @@ if (process.argv.length < 3) {
 	console.log("node.exe appPackager <folder to pack or package to unpack>");
 	process.exit(1);
 }
+var fs = require("fs");
+var path = require("path");
+
 var appPackage = "";
 var modulesWaiting = 0;
 var modulesWritten = function() {
 	console.log("modules written");
-	fs.writeFile(appFolder+"/appjs.json",JSON.stringify(appInfo, null,4),function(err) {
+	appInfo.packageVer = appInfo.packageVer+1;
+	
+	fs.writeFile(appFolder+"/appInfo.json",JSON.stringify(appInfo, null,4),function(err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("appjs.json written");
+			console.log("wrote "+appFolder+"/appInfo.json");
 		}
 		packageApp();
 	});
 }
 var appInfo = {
 	appName:"Unnamed"
+	,packageVer:0
 	,appVersion:0.1
 	,deps:{
 	
@@ -28,7 +34,6 @@ var appInfo = {
 };
 var appFolder = './';
 				
-var fs = require("fs");
 fs.stat(process.argv[2], function(err, stats) {
 	if (err) {
 		console.log(err);
@@ -39,11 +44,13 @@ fs.stat(process.argv[2], function(err, stats) {
 		appPackage = appFolder + config.packageExt;
 		fs.exists(appFolder+"/appinfo.json",function(exists) {
 			if (!exists) {
-				appInfo.appName=appFolder;//todo clean up this name if it is a path
+			console.log("no appinfo.json found");
+			console.log(appFolder+"/appinfo.json");
+				appInfo.appName=path.basename(appFolder);
 				scanModules();
 				
 			} else {
-				fs.readFile(appFolder+"/node_modules/dependancies.json", 'utf8', function (err,data) {
+				fs.readFile(appFolder+"/appinfo.json", 'utf8', function (err,data) {
 				  if (err) {
 					console.log(err);
 				  } else {
@@ -78,11 +85,6 @@ function packageApp() {
 			var apack = require("./node-native-zip");
 			
 			var archive = new apack(appPackage);
-			/*archive.addFiles([ 
-				{ name: "dependancies.json", path: appFolder+"/node_modules/dependancies.json" }
-			], function (err) {
-				if (err) console.log("error while adding files: " + err);
-				*/
 				archive.addFiles(files, function (err) {
 					if (err) {
 						process.stdout.write("error while adding files: "+ err);
@@ -93,7 +95,6 @@ function packageApp() {
 						});
 					}
 				});
-			/*});*/
 		}
 	},exclude);
 }
