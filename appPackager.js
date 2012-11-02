@@ -2,14 +2,15 @@ var config = {
 	packageExt:'.appjs'
 	,modulePackageExt:'.modpack'
 	,appInfoFile:'package.json'
+	,deployFolder:'deploy'
 }
 var appInfo = {
 	name:"Unnamed"
 	,version:0.1
-	,moduleUrl:'http://example.com/modulePackages/'
-	,appUpdateUrl:'http://example.com/myapp/latest.txt'
+	,moduleUrl:'http://example.com/node_modules/'
+	,appUpdateUrl:'http://example.com/apps/appname.txt'
 	,silentUpdates:true
-	,appjs-dependancies:{
+	,appdeps:{
 	
 	}
 };
@@ -44,21 +45,26 @@ fs.stat(process.argv[2], function(err, stats) {
 	}
 	if (stats.isDirectory()) {
 		appFolder = process.argv[2];
-		appPackage = appFolder + config.packageExt;
-		fs.exists(appFolder+"/"+config.appInfoFile,function(exists) {
-			if (!exists) {
-				appInfo.name=path.basename(appFolder);
-				scanModules();	
-			} else {
-				fs.readFile(appFolder+"/"+config.appInfoFile, 'utf8', function (err,data) {
-				  if (err) {
-					console.log(err);
-				  } else {
-					appInfo = JSON.parse(data);
-				  }
-					scanModules();
-				});
-			}
+		fs.mkdir(appFolder+'/'+config.deployFolder, function(err) {
+			if (err) console.log(err);
+			appPackage = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+ config.packageExt;
+		
+			fs.exists(appFolder+"/"+config.appInfoFile,function(exists) {
+			
+				if (!exists) {
+					appInfo.name=path.basename(appFolder);
+					scanModules();	
+				} else {
+					fs.readFile(appFolder+"/"+config.appInfoFile, 'utf8', function (err,data) {
+					  if (err) {
+						console.log(err);
+					  } else {
+						appInfo = JSON.parse(data);
+					  }
+						scanModules();
+					});
+				}
+			});
 		});
 	}
 	if (stats.isFile()) {
@@ -101,50 +107,67 @@ function packageApp() {
 
 
 function scanModules() {
+	//write out auto update file
+	var f = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+".txt";
+	fs.writeFile(f,(appInfo['version']||"0.1")+"\n"+appInfo['appUpdateUrl'].split(".txt").join(".appjs")+"\n",function(err) {
+		if (err) {
+			console.log(err);
+		}
+	});
 //scan node modules
 	console.log("scanning node_modules");
-	fs.readdir("./"+appFolder+"/node_modules", function(err, list) {
-		if (err) {console.log(err);throw err;}
-		list.forEach(function(file) {
-			var module = appFolder +"/node_modules" + '/' + file;
-			fs.stat(module, function(err, stat) {
-				if (stat && stat.isDirectory()) {
-					var exclude = {};
-					//package this module.
-					fs.stat(module+"/package.json", function(err,stat) {
-						if (stat && stat.isFile()) {
-							fs.readFile(module+"/package.json", 'utf8', function (err,data) {
-							  if (err) {
-								return console.log(err);
-							  }
-							  var modPackageInfo = JSON.parse(data);
-							  if (!appInfo.appjs-dependancies[modPackageInfo.name]) appInfo.appjs-dependancies[modPackageInfo.name] = {};
-							  
-							  appInfo.appjs-dependancies[modPackageInfo.name].name = modPackageInfo.name;
-							  appInfo.appjs-dependancies[modPackageInfo.name].version = modPackageInfo.version;
-							  if (!appInfo.appjs-dependancies[modPackageInfo.name]['platforms']) appInfo.appjs-dependancies[modPackageInfo.name].platforms = {};
-							  appInfo.appjs-dependancies[modPackageInfo.name].platforms[process.platform] = process.platform;
-							  if (appInfo.appjs-dependancies[modPackageInfo.name]['crossPlatform']) {
-								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version+"-"+process.platform,appFolder);
-							  } else {
-								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version,appFolder);
-							  }
-							  
-							});
-						} else {
-							packModule(module,file+"."+process.platform,appFolder);
-						}
-					});
-					
-				}					
+	fs.readdir(appFolder+"/node_modules", function(err, list) {
+		if (err) {
+			if (err.code ==  'ENOENT') {
+				//node_modules directory does not exist.
+				console.log("node_modules directory not found.");
+				modulesWritten();
+			} else {
+				console.log(err);
+			}
+		} else {
+			list.forEach(function(file) {
+				var module = appFolder +"/node_modules" + '/' + file;
+				fs.stat(module, function(err, stat) {
+					if (stat && stat.isDirectory()) {
+						var exclude = {};
+						//package this module.
+						fs.stat(module+"/package.json", function(err,stat) {
+							if (stat && stat.isFile()) {
+								fs.readFile(module+"/package.json", 'utf8', function (err,data) {
+								  if (err) {
+									return console.log(err);
+								  }
+								  var modPackageInfo = JSON.parse(data);
+								  if (!appInfo.appdeps[modPackageInfo.name]) {
+									appInfo.appdeps[modPackageInfo.name] = {};
+								  }
+								  appInfo.appdeps[modPackageInfo.name].name = modPackageInfo.name;
+								  appInfo.appdeps[modPackageInfo.name].version = modPackageInfo.version;
+								  if (!appInfo.appdeps[modPackageInfo.name]['platforms']) appInfo.appdeps[modPackageInfo.name].platforms = {};
+								  appInfo.appdeps[modPackageInfo.name].platforms[process.platform] = process.platform;
+								  if (appInfo.appdeps[modPackageInfo.name]['crossPlatform'] == true) {
+									packModule(module,modPackageInfo.name+"-"+modPackageInfo.version,appFolder);
+								  } else {
+									packModule(module,modPackageInfo.name+"-"+modPackageInfo.version+"-"+process.platform,appFolder);
+								  }
+								  
+								});
+							} else {
+								packModule(module,file+"."+process.platform,appFolder);
+							}
+						});
+						
+					}					
+				});
 			});
-		});
+		}
 	});
 }
 //package module
 function packModule(module,moduleName,appFolder) {
 	modulesWaiting++;
-	var modulePack = appFolder+"/node_modules/"+moduleName+config.modulePackageExt;
+	var modulePack = appFolder+"/"+config.deployFolder+"/"+moduleName+config.modulePackageExt;
 	var exclude = {};
 	walk(module,function(err,files) {
 		if (err) {
