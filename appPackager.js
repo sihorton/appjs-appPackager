@@ -1,7 +1,7 @@
 var config = {
 	packageExt:'.appjs'
 	,modulePackageExt:'.modpack'
-	,appInfoFile:'appInfo.json'
+	,appInfoFile:'package.json'
 }
 var appInfo = {
 	appName:"Unnamed"
