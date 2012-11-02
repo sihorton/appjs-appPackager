@@ -4,14 +4,12 @@ var config = {
 	,appInfoFile:'package.json'
 }
 var appInfo = {
-	appName:"Unnamed"
-	,appVersion:0.1
-	,packageFormat:1
-	,packageVer:0
+	name:"Unnamed"
+	,version:0.1
 	,moduleUrl:'http://example.com/modulePackages/'
 	,appUpdateUrl:'http://example.com/myapp/latest.txt'
 	,silentUpdates:true
-	,deps:{
+	,appjs-dependancies:{
 	
 	}
 };
@@ -26,7 +24,7 @@ var appPackage = "";
 var modulesWaiting = 0;
 var modulesWritten = function() {
 	console.log("modules written");
-	appInfo.packageVer = appInfo.packageVer+1;
+	//appInfo.packageVer = appInfo.packageVer+1;
 	
 	fs.writeFile(appFolder+"/"+config.appInfoFile,JSON.stringify(appInfo, null,4),function(err) {
 		if (err) {
@@ -49,7 +47,7 @@ fs.stat(process.argv[2], function(err, stats) {
 		appPackage = appFolder + config.packageExt;
 		fs.exists(appFolder+"/"+config.appInfoFile,function(exists) {
 			if (!exists) {
-				appInfo.appName=path.basename(appFolder);
+				appInfo.name=path.basename(appFolder);
 				scanModules();	
 			} else {
 				fs.readFile(appFolder+"/"+config.appInfoFile, 'utf8', function (err,data) {
@@ -120,13 +118,13 @@ function scanModules() {
 								return console.log(err);
 							  }
 							  var modPackageInfo = JSON.parse(data);
-							  if (!appInfo.deps[modPackageInfo.name]) appInfo.deps[modPackageInfo.name] = {};
+							  if (!appInfo.appjs-dependancies[modPackageInfo.name]) appInfo.appjs-dependancies[modPackageInfo.name] = {};
 							  
-							  appInfo.deps[modPackageInfo.name].name = modPackageInfo.name;
-							  appInfo.deps[modPackageInfo.name].version = modPackageInfo.version;
-							  if (!appInfo.deps[modPackageInfo.name]['platforms']) appInfo.deps[modPackageInfo.name].platforms = {};
-							  appInfo.deps[modPackageInfo.name].platforms[process.platform] = process.platform;
-							  if (appInfo.deps[modPackageInfo.name]['crossPlatform']) {
+							  appInfo.appjs-dependancies[modPackageInfo.name].name = modPackageInfo.name;
+							  appInfo.appjs-dependancies[modPackageInfo.name].version = modPackageInfo.version;
+							  if (!appInfo.appjs-dependancies[modPackageInfo.name]['platforms']) appInfo.appjs-dependancies[modPackageInfo.name].platforms = {};
+							  appInfo.appjs-dependancies[modPackageInfo.name].platforms[process.platform] = process.platform;
+							  if (appInfo.appjs-dependancies[modPackageInfo.name]['crossPlatform']) {
 								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version+"-"+process.platform,appFolder);
 							  } else {
 								packModule(module,modPackageInfo.name+"-"+modPackageInfo.version,appFolder);
