@@ -35,6 +35,13 @@ var modulesWritten = function() {
 		}
 		packageApp();
 	});
+	fs.writeFile(appFolder+"/deploy/"+appInfo.name+".appjs.json",JSON.stringify(appInfo, null,4),function(err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("wrote "+appFolder+"/deploy/"+appInfo.name+".appjs.json");
+		}
+	});
 }
 var appFolder = './';
 				
@@ -108,12 +115,12 @@ function packageApp() {
 
 function scanModules() {
 	//write out auto update file
-	var f = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+".txt";
+	/*var f = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+".txt";
 	fs.writeFile(f,(appInfo['version']||"0.1")+"\n"+appInfo['appUpdateUrl'].split(".txt").join(".appjs")+"\n",function(err) {
 		if (err) {
 			console.log(err);
 		}
-	});
+	});*/
 //scan node modules
 	console.log("scanning node_modules");
 	fs.readdir(appFolder+"/node_modules", function(err, list) {
