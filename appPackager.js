@@ -90,6 +90,7 @@ function packageApp() {
 	var exclude= {
 		'bin':'bin'
 		,'node_modules':'node_modules'
+		,'deploy':'deploy'
 	}
 	walk(appFolder,function(err,files) {
 		if (err) {
