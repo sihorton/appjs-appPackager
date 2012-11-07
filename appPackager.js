@@ -67,8 +67,10 @@ fs.stat(process.argv[2], function(err, stats) {
 						console.log(err);
 					  } else {
 						appInfo = JSON.parse(data);
+						appPackage = appFolder + "/" + config.deployFolder +"/"+appInfo.name+ config.packageExt;
+		
 					  }
-						scanModules();
+					scanModules();
 					});
 				}
 			});
