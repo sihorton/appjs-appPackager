@@ -85,7 +85,7 @@ fs.stat(process.argv[2], function(err, stats) {
 	}
 });
 
-function packageApp() {
+function packageApp(extraFiles,callBack) {
 	process.stdout.write('scanning folder: '+appFolder+'\n');
 	var exclude= {
 		'bin':'bin'
@@ -97,7 +97,11 @@ function packageApp() {
 			process.stdout.write('Error:' + err);
 		} else {
 			var apack = require("./node-native-zip");
-			
+			if (extraFiles) {
+				for(var i=0; i< extraFiles.length;i++) {
+					files.push(extraFiles[i]);
+				}				
+			}
 			var archive = new apack(appPackage);
 				archive.addFiles(files, function (err) {
 					if (err) {
@@ -106,6 +110,9 @@ function packageApp() {
 						var buff = archive.toBuffer();
 						fs.writeFile(appPackage, buff, function () {
 							process.stdout.write("wrote "+appPackage+'\n');
+							if (callBack) {
+								callBack();
+							}
 						});
 					}
 				});
@@ -173,7 +180,7 @@ function scanModules() {
 	});
 }
 //package module
-function packModule(module,moduleName,appFolder) {
+function packModule(module,moduleName,appFolder,callBack) {
 	modulesWaiting++;
 	var modulePack = appFolder+"/"+config.deployFolder+"/"+moduleName+config.modulePackageExt;
 	var exclude = {};
@@ -191,7 +198,12 @@ function packModule(module,moduleName,appFolder) {
 					fs.writeFile(modulePack, buff, function () {
 						process.stdout.write("wrote "+modulePack+'\n');
 						
-						if (!--modulesWaiting) {modulesWritten();}
+						if (!--modulesWaiting) {
+							modulesWritten();
+							if (callBack) {
+								callBack();
+							}
+						}
 	
 					});
 				}
