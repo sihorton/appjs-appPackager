@@ -3,6 +3,8 @@ var config = {
 	,modulePackageExt:'.modpack'
 	,appInfoFile:'package.json'
 	,deployFolder:'deploy'
+	//'archiver' or 'node-native-zip'
+	,archiver:'node-native-zip'
 }
 var appInfo = {
 	name:"Unnamed"
@@ -83,7 +85,7 @@ fs.stat(process.argv[2], function(err, stats) {
 		process.stdout.write("unpacking "+appPackage+'\n');
 		var archive = new apack(appPackage);
 		archive.extractAllTo(appFolder, true);
-		process.stdout.write("unpackaged to "+appFolder+'\n');
+		process.stdout.write("unpacked to "+appFolder+'\n');
 	}
 });
 
@@ -98,13 +100,14 @@ function packageApp(extraFiles,callBack) {
 		if (err) {
 			process.stdout.write('Error:' + err);
 		} else {
-			var apack = require("./node-native-zip");
-			if (extraFiles) {
-				for(var i=0; i< extraFiles.length;i++) {
-					files.push(extraFiles[i]);
-				}				
-			}
-			var archive = new apack(appPackage);
+			if (config.archiver == "node-native-zip") {
+				var apack = require("./node-native-zip");
+				if (extraFiles) {
+					for(var i=0; i< extraFiles.length;i++) {
+						files.push(extraFiles[i]);
+					}				
+				}
+				var archive = new apack(appPackage);
 				archive.addFiles(files, function (err) {
 					if (err) {
 						process.stdout.write("error while adding files: "+ err);
@@ -118,20 +121,35 @@ function packageApp(extraFiles,callBack) {
 						});
 					}
 				});
+			}
+			if (config.archiver == "archiver") {
+				var archiver = require("archiver");//alternative: zipstream-ctalkington
+				var out = fs.createWriteStream(appPackage);
+				var zip = archiver.createZip({ level: 1 });
+				zip.pipe(out);
+				var filepos=files.length;
+				var addAnotherFile = function() {
+					filepos--;
+					if (filepos>-1) {
+						//console.log(files[filepos].name);
+						zip.addFile(fs.createReadStream(files[filepos].path), { name: files[filepos].name,store:true }, function() {
+							addAnotherFile();
+						});
+					} else {
+						zip.finalize(function(written) { 
+							console.log("wrote "+appPackage+" "+Math.round(written/1024)+'k\n');
+						});
+					}
+				}
+				addAnotherFile();
+			}
 		}
 	},exclude);
 }
 
 
 function scanModules() {
-	//write out auto update file
-	/*var f = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+".txt";
-	fs.writeFile(f,(appInfo['version']||"0.1")+"\n"+appInfo['appUpdateUrl'].split(".txt").join(".appjs")+"\n",function(err) {
-		if (err) {
-			console.log(err);
-		}
-	});*/
-//scan node modules
+	//scan node modules
 	console.log("scanning node_modules");
 	fs.readdir(appFolder+"/node_modules", function(err, list) {
 		if (err) {
@@ -190,26 +208,65 @@ function packModule(module,moduleName,appFolder,callBack) {
 		if (err) {
 			process.stdout.write('Error:' + err);
 		} else {
-			var apack = require("./node-native-zip");			
-			var archive = new apack(modulePack);
-			archive.addFiles(files, function (err) {
-				if (err) {
-					process.stdout.write("error while adding files: "+ err);
-				} else {
-					var buff = archive.toBuffer();
-					fs.writeFile(modulePack, buff, function () {
-						process.stdout.write("wrote "+modulePack+'\n');
-						
-						if (!--modulesWaiting) {
-							modulesWritten();
-							if (callBack) {
-								callBack();
+			if (config.archiver == "node-native-zip") {
+				var apack = require("./node-native-zip");			
+				var archive = new apack(modulePack);
+				archive.addFiles(files, function (err) {
+					if (err) {
+						process.stdout.write("error while adding files: "+ err);
+					} else {
+						var buff = archive.toBuffer();
+						fs.writeFile(modulePack, buff, function () {
+							process.stdout.write("wrote "+modulePack+'\n');
+							//compress the output file..
+							var zlib = require('zlib');
+							var gzip = zlib.createGzip();
+							var inp = fs.createReadStream(modulePack);
+							var out = fs.createWriteStream(modulePack+'.gz');
+							out.on('close',function() {
+								console.log("wrote ",modulePack+'.gz');
+								//fs.unlink(modulePack);
+							});
+							inp.pipe(gzip).pipe(out);
+							if (!--modulesWaiting) {
+								modulesWritten();
+								if (callBack) {
+									callBack();
+								}
 							}
+		
+						});
+					}
+				});
+			} else {
+				if (config.archiver == "archiver") {
+					var archiver = require("archiver");//alternative: zipstream-ctalkington
+					var out = fs.createWriteStream(modulePack);
+					var zip = archiver.createZip({ level: 1 });
+					zip.pipe(out);
+					var filepos=files.length;
+					var addAnotherFile = function() {
+						filepos--;
+						if (filepos>-1) {
+							//console.log(files[filepos].name);
+							zip.addFile(fs.createReadStream(files[filepos].path), { name: files[filepos].name,store:false }, function() {
+								addAnotherFile();
+							});
+						} else {
+							zip.finalize(function(written) { 
+								console.log("wrote "+modulePack+" "+Math.round(written/1024)+'k');
+								if (!--modulesWaiting) {
+									modulesWritten();
+									if (callBack) {
+										callBack();
+									}
+								}
+							});
 						}
-	
-					});
+					}
+					addAnotherFile();
 				}
-			});
+			}
 		}
 	},exclude,false,true);
 }
