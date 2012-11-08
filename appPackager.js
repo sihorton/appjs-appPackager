@@ -3,8 +3,9 @@ var config = {
 	,modulePackageExt:'.modpack'
 	,appInfoFile:'package.json'
 	,deployFolder:'deploy'
-	//'archiver' or 'node-native-zip'
-	,archiver:'node-native-zip'
+	,archiver:'node-native-zip'//'archiver' or 'node-native-zip'
+	,zipPackage:'archiver'//'archiver'
+	,delRawPackage:true
 }
 var appInfo = {
 	name:"Unnamed"
@@ -26,7 +27,7 @@ var path = require("path");
 var appPackage = "";
 var modulesWaiting = 0;
 var modulesWritten = function() {
-	console.log("modules written");
+	//console.log("modules written");
 	//appInfo.packageVer = appInfo.packageVer+1;
 	
 	fs.writeFile(appFolder+"/"+config.appInfoFile,JSON.stringify(appInfo, null,4),function(err) {
@@ -55,7 +56,7 @@ fs.stat(process.argv[2], function(err, stats) {
 	if (stats.isDirectory()) {
 		appFolder = process.argv[2];
 		fs.mkdir(appFolder+'/'+config.deployFolder, function(err) {
-			if (err) console.log(err);
+			//if (err) console.log(err);
 			appPackage = appFolder + "/" + config.deployFolder +"/"+path.basename(appFolder)+ config.packageExt;
 		
 			fs.exists(appFolder+"/"+config.appInfoFile,function(exists) {
@@ -115,8 +116,23 @@ function packageApp(extraFiles,callBack) {
 						var buff = archive.toBuffer();
 						fs.writeFile(appPackage, buff, function () {
 							process.stdout.write("wrote "+appPackage+'\n');
-							if (callBack) {
-								callBack();
+							if (config.zipPackage == 'archiver') {
+								var archiver = require("archiver");//alternative: zipstream-ctalkington
+								var out = fs.createWriteStream(appPackage+'.zip');
+								var zip = archiver.createZip({ level: 1 });
+								zip.pipe(out);
+								zip.addFile(fs.createReadStream(appPackage), { name: path.basename(appPackage),store:false }, function() {
+									zip.finalize(function(written) { 
+										console.log("wrote "+appPackage+".zip "+Math.round(written/1024)+'k\n');
+										if (callBack) {
+											callBack();
+										}
+									});	
+								});
+							} else {							
+								if (callBack) {
+									callBack();
+								}
 							}
 						});
 					}
@@ -225,7 +241,9 @@ function packModule(module,moduleName,appFolder,callBack) {
 							var out = fs.createWriteStream(modulePack+'.gz');
 							out.on('close',function() {
 								console.log("wrote ",modulePack+'.gz');
-								//fs.unlink(modulePack);
+								if (config.delRawPackage) {
+									fs.unlink(modulePack);
+								}
 							});
 							inp.pipe(gzip).pipe(out);
 							if (!--modulesWaiting) {
