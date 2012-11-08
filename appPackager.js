@@ -15,7 +15,7 @@ var appInfo = {
 	}
 };
 if (process.argv.length < 3) {
-	console.log("node.exe appPackager <folder to pack or package to unpack>");
+	console.log("usage: appPackager <folder to pack or package to unpack>");
 	process.exit(1);
 }
 var fs = require("fs");
