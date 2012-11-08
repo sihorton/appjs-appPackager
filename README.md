@@ -2,6 +2,8 @@ appPackager
 ===========
 A script for creating packages of your appjs applications.
 
+A debian package is available for linux: <a href="http://appjs.delightfulsoftware.com/platformInstall/appjs-packager.deb">appjs-packager.deb</a>
+
 Quick Start
 ===========
 
