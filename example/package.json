@@ -1,0 +1,16 @@
+{
+    "name": "example",
+    "version": 0.1,
+    "moduleUrl": "http://example.com/node_modules/",
+    "appUpdateUrl": "http://example.com/apps/appname.txt",
+    "silentUpdates": true,
+    "appdeps": {
+        "adm-zip": {
+            "name": "adm-zip",
+            "version": "0.1.5",
+            "platforms": {
+                "win32": "win32"
+            }
+        }
+    }
+}
