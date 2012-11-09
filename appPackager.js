@@ -80,7 +80,7 @@ fs.stat(process.argv[2], function(err, stats) {
 		});
 	}
 	if (stats.isFile()) {
-		var apack = require('./adm-zip');
+		var apack = require('adm-zip');
 		appPackage = process.argv[2];
 		appFolder = appPackage.substring(0,appPackage.lastIndexOf('.'));
 		process.stdout.write("unpacking "+appPackage+'\n');
@@ -102,7 +102,7 @@ function packageApp(extraFiles,callBack) {
 			process.stdout.write('Error:' + err);
 		} else {
 			if (config.archiver == "node-native-zip") {
-				var apack = require("./node-native-zip");
+				var apack = require("node-native-zip");
 				if (extraFiles) {
 					for(var i=0; i< extraFiles.length;i++) {
 						files.push(extraFiles[i]);
@@ -225,7 +225,7 @@ function packModule(module,moduleName,appFolder,callBack) {
 			process.stdout.write('Error:' + err);
 		} else {
 			if (config.archiver == "node-native-zip") {
-				var apack = require("./node-native-zip");			
+				var apack = require("node-native-zip");			
 				var archive = new apack(modulePack);
 				archive.addFiles(files, function (err) {
 					if (err) {
