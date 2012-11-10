@@ -2,9 +2,16 @@ appPackager
 ===========
 A script for creating packages of your appjs applications.
 
+Quick Start Linux:
+==================
 A debian package is available for linux: <a href="http://appjs.delightfulsoftware.com/platformInstall/appjs-packager.deb">appjs-packager.deb</a>
-After install type appjs-packager from a console to run the packager. 
 
+    appjs-packager <project-dir>
+This will create a folder under <project-dir> called deploy, if no package.json is found in the project directory then one will be created.
+The packager will then create <project-name>.appjs containing the application and <module-name>-<version>-<platform>.modpack.gz for each module.
+
+    appjs-packager <project-name>.appjs
+will extract the contents of the packaged file to <project-name> directory.
 
 Quick Start
 ===========
