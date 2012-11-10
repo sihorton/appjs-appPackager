@@ -3,6 +3,8 @@ appPackager
 A script for creating packages of your appjs applications.
 
 A debian package is available for linux: <a href="http://appjs.delightfulsoftware.com/platformInstall/appjs-packager.deb">appjs-packager.deb</a>
+After install type appjs-packager from a console to run the packager. 
+
 
 Quick Start
 ===========
@@ -45,23 +47,20 @@ for the platform that the script is run on.
 
 When running a packaged application appjs can then access this dependancy information and download 
 
-AppInfo and Dependancies
+package.json and Dependancies
 =======
-appPackager will read and update an appInfo.json file in the project directory. Each time it is run it will increment
-the packageVer number and add all dependancies that were found in the node_modules directory. The file is a simple json text
+appPackager will read and update a package.json file in the project directory. Each time it is run it will add any new
+dependancies that were found in the node_modules directory. The file is a simple json text
 file that you can edit and add any additional properties you like.
 
 An example of the file is given below:
 
 	{
-		"appName": "new-example",
-		"appVersion": 0.1,
-		"packageFormat": 1,
-		"packageVer": 2,
+		"name": "new-example",
+		"version": 0.1,
 		"moduleUrl": "http://example.com/modulePackages/",
 		"appUpdateUrl": "http://example.com/new-example/latest.txt",
-		"silentUpdates": true,
-		"deps": {
+		"moddeps": {
 			"adm-zip": {
 				"name": "adm-zip",
 				"version": "0.1.5",
@@ -111,9 +110,6 @@ The router yields if it cannot find a matching file enabling you to serve files 
 The code above will serve files from the package.appjs unless there is a matching file in the content directory in which case the 
 content directory file will be used instead.
 
-Detail
+Cross platform
 ======
-
-appPackager uses [node-native-zip](https://github.com/janjongboom/node-native-zip) and [adm-zip](https://github.com/cthackers/adm-zip)
-to pack and unpack the package files. These are written in pure javascript so they should work cross platform. 
-The package file is in a zip style format with no compression (so node can serve the files fast without needing to decompress).
+appPackager is written in javascript so is fully cross platform.
