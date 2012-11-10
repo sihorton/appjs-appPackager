@@ -13,16 +13,16 @@ The packager will then create <project-name>.appjs containing the application an
     appjs-packager <project-name>.appjs
 will extract the contents of the packaged file to <project-name> directory.
 
-Quick Start
+Quick Start Windows:
 ===========
 
-Packager for AppJS to serve application content from a single package file.
+appPackager should be run by node and passed a parameter of the project directory to package:
 
-    node appPackager project-dir
+    node appPackager <project-dir>
     
 appPackager will take the files in project-dir and create a project-dir.appjs package containing the files.
 
-    node appPackager project-dir.appjs
+    node appPackager <project-name>.appjs
     
 appPackager will unpack all of the files in the project-dir.appjs package into data/content/ folder.
 
