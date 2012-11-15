@@ -120,3 +120,10 @@ content directory file will be used instead.
 Cross platform
 ======
 appPackager is written in javascript so is fully cross platform.
+
+Security / Goals
+======
+The packaging of the application does not add any security at all. It is easy to extract all of the contents of the packaged
+application. The goal for this project is to make it easy to take an application on my local disk, bundle it up and then
+distribute it cross platform to other users. Doing this saves you having to distribute a 20 meg+ runtime along with your app
+for each platform you can run on. It also provides a good solution for node_modules dependancies.
