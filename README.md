@@ -46,13 +46,13 @@ Copy the node_modules/adm-zip folder from the appPackager directory into your Ap
 
 Then run appjs as normal but now files will be served from the package.appjs file instead of the content/ folder.
 
-Module Dependancies
+Module Dependencies
 ========
 In order to support applications that utilise node modules that are not in the vanilla appjs install the script scans the 
 node_modules directory. For each module that it finds it creates a binary package file (.modpack) in the node_modules file
 for the platform that the script is run on.
 
-When running a packaged application appjs can then access this dependancy information and download 
+When running a packaged application appjs can then access this dependency information and download 
 
 package.json and Dependancies
 =======
